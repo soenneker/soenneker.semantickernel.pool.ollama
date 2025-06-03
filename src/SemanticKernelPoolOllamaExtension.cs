@@ -20,7 +20,7 @@ public static class SemanticKernelPoolOllamaExtension
     /// <summary>
     /// Registers an Ollama model in the kernel pool with specified kernel type and optional rate/token limits.
     /// </summary>
-    public static ValueTask RegisterOllama(this ISemanticKernelPool pool, string key, KernelType type, string modelId, string endpoint,
+    public static ValueTask AddOllama(this ISemanticKernelPool pool, string poolId, string key, KernelType type, string modelId, string endpoint,
         IHttpClientCache httpClientCache, int? rps, int? rpm, int? rpd, string? apiKey = null, int? tokensPerDay = null,
         CancellationToken cancellationToken = default)
     {
@@ -36,7 +36,7 @@ public static class SemanticKernelPoolOllamaExtension
             ApiKey = apiKey,
             KernelFactory = async (opts, _) =>
             {
-                HttpClient httpClient = await httpClientCache.Get($"ollama:{modelId}", () => new HttpClientOptions
+                HttpClient httpClient = await httpClientCache.Get($"ollama:{poolId}:{key}", () => new HttpClientOptions
                                                              {
                                                                  Timeout = TimeSpan.FromSeconds(300),
                                                                  BaseAddress = opts.Endpoint
@@ -57,16 +57,16 @@ public static class SemanticKernelPoolOllamaExtension
             }
         };
 
-        return pool.Register(key, options, cancellationToken);
+        return pool.Add(poolId, key, options, cancellationToken);
     }
 
     /// <summary>
     /// Unregisters an Ollama model from the kernel pool and removes associated HTTP client and kernel cache entries.
     /// </summary>
-    public static async ValueTask UnregisterOllama(this ISemanticKernelPool pool, string key, IHttpClientCache httpClientCache,
+    public static async ValueTask RemoveOllama(this ISemanticKernelPool pool, string poolId, string key, IHttpClientCache httpClientCache,
         CancellationToken cancellationToken = default)
     {
-        await pool.Unregister(key, cancellationToken).NoSync();
-        await httpClientCache.Remove($"ollama:{key}", cancellationToken).NoSync();
+        await pool.Remove(poolId, key, cancellationToken).NoSync();
+        await httpClientCache.Remove($"ollama:{poolId}:{key}", cancellationToken).NoSync();
     }
 }
