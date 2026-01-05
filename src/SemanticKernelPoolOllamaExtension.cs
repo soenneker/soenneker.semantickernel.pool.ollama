@@ -36,12 +36,13 @@ public static class SemanticKernelPoolOllamaExtension
             ApiKey = apiKey,
             KernelFactory = async (opts, _) =>
             {
-                HttpClient httpClient = await httpClientCache.Get($"ollama:{poolId}:{key}", () => new HttpClientOptions
-                                                             {
-                                                                 Timeout = TimeSpan.FromSeconds(300),
-                                                                 BaseAddress = opts.Endpoint
-                                                             }, cancellationToken)
-                                                             .NoSync();
+                // No closure: state passed explicitly + static lambda
+                HttpClient httpClient = await httpClientCache.Get($"ollama:{poolId}:{key}", opts.Endpoint, static endpoint => new HttpClientOptions
+                {
+                    Timeout = TimeSpan.FromSeconds(300),
+                    BaseAddress = endpoint is not null ? new Uri(endpoint, UriKind.Absolute) : null
+                }, cancellationToken)
+                .NoSync();
 
 #pragma warning disable SKEXP0070
                 return type switch
