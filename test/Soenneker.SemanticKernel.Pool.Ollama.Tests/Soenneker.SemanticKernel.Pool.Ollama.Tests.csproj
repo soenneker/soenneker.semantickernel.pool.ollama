@@ -15,7 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\Soenneker.SemanticKernel.Pool.Ollama.csproj" />
+        <ProjectReference Include="..\..\src\Soenneker.SemanticKernel.Pool.Ollama\Soenneker.SemanticKernel.Pool.Ollama.csproj" />
     </ItemGroup>
 
     <ItemGroup>

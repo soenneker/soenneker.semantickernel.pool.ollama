@@ -4,10 +4,11 @@
   </Folder>
   <Folder Name="/.github/workflows/">
     <File Path=".github/workflows/build-and-test.yml" />
+    <File Path=".github/workflows/codeql.yml" />
     <File Path=".github/workflows/publish-package.yml" />
   </Folder>
   <Folder Name="/src/">
-    <Project Path="src/Soenneker.SemanticKernel.Pool.Ollama.csproj" />
+    <Project Path="src/Soenneker.SemanticKernel.Pool.Ollama/Soenneker.SemanticKernel.Pool.Ollama.csproj" />
   </Folder>
   <Folder Name="/test/">
     <Project Path="test/Soenneker.SemanticKernel.Pool.Ollama.Tests/Soenneker.SemanticKernel.Pool.Ollama.Tests.csproj" />
