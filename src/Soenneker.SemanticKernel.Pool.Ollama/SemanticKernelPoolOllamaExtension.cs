@@ -68,6 +68,6 @@ public static class SemanticKernelPoolOllamaExtension
         CancellationToken cancellationToken = default)
     {
         await pool.Remove(poolId, key, cancellationToken).NoSync();
-        await httpClientCache.Remove($"ollama:{poolId}:{key}", cancellationToken).NoSync();
+        await httpClientCache.Remove($"ollama:{poolId}:{key}").NoSync();
     }
 }
