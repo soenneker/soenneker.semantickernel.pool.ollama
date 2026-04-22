@@ -1,11 +1,10 @@
-﻿using Soenneker.Tests.Unit;
-using Xunit;
+using Soenneker.Tests.Unit;
 
 namespace Soenneker.SemanticKernel.Pool.Ollama.Tests;
 
 public sealed class KernelPoolOllamaExtensionTests : UnitTest
 {
-    [Fact]
+    [Test]
     public void Default()
     {
 
