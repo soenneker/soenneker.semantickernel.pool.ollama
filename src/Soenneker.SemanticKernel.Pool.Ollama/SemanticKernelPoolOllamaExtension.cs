@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace Soenneker.SemanticKernel.Pool.Ollama;
 
 /// <summary>
-/// Provides Ollama-specific registration extensions for KernelPoolManager, enabling integration with local LLMs via Semantic Kernel.
+/// Provides Ollama connector registration extensions for <see cref="ISemanticKernelPool"/>.
 /// </summary>
 public static class SemanticKernelPoolOllamaExtension
 {
@@ -23,14 +23,14 @@ public static class SemanticKernelPoolOllamaExtension
     /// <param name="pool">Pool that supplies the reusable resource.</param>
     /// <param name="poolId">Identifier of the target pool.</param>
     /// <param name="key">Key used to locate the target entry.</param>
-    /// <param name="type">Runtime type to inspect or construct.</param>
+    /// <param name="type">The connector type. Chat, completion, and embedding are supported.</param>
     /// <param name="modelId">Identifier of the model to use.</param>
     /// <param name="endpoint">Service endpoint to call.</param>
     /// <param name="httpClientCache">http Client Cache used to communicate with the external service.</param>
     /// <param name="rps">Optional requests-per-second limit.</param>
     /// <param name="rpm">Optional requests-per-minute limit.</param>
     /// <param name="rpd">Optional requests-per-day limit.</param>
-    /// <param name="apiKey">API key used to authenticate the request.</param>
+    /// <param name="apiKey">API key metadata stored with the entry. This adapter does not add it to HTTP requests.</param>
     /// <param name="tokensPerDay">Optional daily token limit.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
     /// <returns>A task that completes when the ollama addition is complete.</returns>
@@ -48,25 +48,22 @@ public static class SemanticKernelPoolOllamaExtension
             RequestsPerDay = rpd,
             TokensPerDay = tokensPerDay,
             ApiKey = apiKey,
-            KernelFactory = async (opts, _) =>
+            KernelFactory = async (opts, factoryCancellationToken) =>
             {
-                // No closure: state passed explicitly + static lambda
-                HttpClient httpClient = await httpClientCache.Get($"ollama:{poolId}:{key}", opts.Endpoint, static endpoint => new HttpClientOptions
+                HttpClient httpClient = await httpClientCache.Get($"ollama:{poolId}:{key}", opts.Endpoint!, static endpoint => new HttpClientOptions
                 {
                     Timeout = TimeSpan.FromSeconds(300),
                     BaseAddress = endpoint is not null ? new Uri(endpoint, UriKind.Absolute) : null
-                }, cancellationToken)
+                }, factoryCancellationToken)
                 .NoSync();
 
 #pragma warning disable SKEXP0070
-                return type switch
+                return opts.Type switch
                 {
-                    _ when type == KernelType.Chat => Kernel.CreateBuilder().AddOllamaChatCompletion(modelId: opts.ModelId!, httpClient),
-                    _ when type == KernelType.Completion => Kernel.CreateBuilder().AddOllamaTextGeneration(modelId: opts.ModelId!, httpClient: httpClient),
-                    _ when type == KernelType.Embedding => Kernel.CreateBuilder().AddOllamaEmbeddingGenerator(modelId: opts.ModelId!, httpClient),
-
-                    // Ollama currently does not have Completion, Image, or Audio support in SK
-                    _ => throw new NotSupportedException($"Unsupported KernelType '{type}' for Ollama registration.")
+                    var t when t == KernelType.Chat => Kernel.CreateBuilder().AddOllamaChatCompletion(modelId: opts.ModelId!, httpClient),
+                    var t when t == KernelType.Completion => Kernel.CreateBuilder().AddOllamaTextGeneration(modelId: opts.ModelId!, httpClient: httpClient),
+                    var t when t == KernelType.Embedding => Kernel.CreateBuilder().AddOllamaEmbeddingGenerator(modelId: opts.ModelId!, httpClient),
+                    _ => throw new NotSupportedException($"Unsupported KernelType '{opts.Type}' for Ollama registration.")
                 };
 #pragma warning restore SKEXP0070
             }
